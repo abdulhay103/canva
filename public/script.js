@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   buttons.forEach(function (button) {
     button.addEventListener("click", function () {
-      // Handle the first selection as the opening time and the second as closing
       if (!openingTime) {
         openingTime = this.textContent;
         console.log(openingTime);
@@ -21,52 +20,60 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("selected-time-display").textContent +=
           " - " + closingTime;
 
-        // Calculate the time difference
         const duration = calculateTimeDifference(openingTime, closingTime);
+        console.log(duration); //why duration calculate NaN?
+
         document.getElementById("time-difference-display").textContent =
           duration + " Hours Meeting";
+        // document.getElementById("time-duration").textContent = duration;
       } else {
-        // Reset if the user tries to select a different opening time or reset closing time
         resetSelection();
       }
     });
   });
 
-  // Function to calculate time difference
   function calculateTimeDifference(start, end) {
+    function parseTime(timeString) {
+      // Trim any extra spaces from the input
+      timeString = timeString.trim();
+
+      const [time, modifier] = timeString.split(" ");
+      if (!time || !modifier) {
+        console.error("Invalid time format:", timeString);
+        return NaN;
+      }
+
+      let [hours, minutes] = time.split(":").map(Number);
+
+      if (modifier === "PM" && hours !== 12) {
+        hours += 12;
+      }
+      if (modifier === "AM" && hours === 12) {
+        hours = 0;
+      }
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    }
+
     const startTime = parseTime(start);
     const endTime = parseTime(end);
 
-    let duration = (endTime - startTime) / (1000 * 60 * 60); // Convert milliseconds to hours
-
-    if (duration < 0) {
-      duration += 24; // Adjust for overnight times
+    if (isNaN(startTime) || isNaN(endTime)) {
+      return null; // Return null if either time is invalid
     }
 
+    let duration = (endTime - startTime) / (1000 * 60 * 60);
+
+    if (duration < 0) {
+      duration += 24;
+    }
     return duration;
   }
 
-  // Helper function to parse the time strings
-  function parseTime(timeString) {
-    const [time, modifier] = timeString.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-
-    if (modifier === "PM" && hours !== 12) {
-      hours += 12;
-    }
-    if (modifier === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    // Convert the time to a date object, keeping the current date.
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-
-    return date;
-  }
-
-  // Function to reset selection
   function resetSelection() {
+    alert("Selection reset. Please choose the opening and closing time again.");
     openingTime = null;
     closingTime = null;
     buttons.forEach(function (btn) {

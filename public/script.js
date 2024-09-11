@@ -7,21 +7,17 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", function () {
       if (!openingTime) {
         openingTime = this.textContent;
-        console.log(openingTime);
-
         this.classList.add("selected-opening");
         document.getElementById("selected-time-display").textContent =
           openingTime;
       } else if (!closingTime && this.textContent !== openingTime) {
         closingTime = this.textContent;
-        console.log(closingTime);
 
         this.classList.add("selected-closing");
         document.getElementById("selected-time-display").textContent +=
           " - " + closingTime;
 
         const duration = calculateTimeDifference(openingTime, closingTime);
-        console.log(duration); //why duration calculate NaN?
 
         document.getElementById("time-difference-display").textContent =
           duration + " Hours Meeting";

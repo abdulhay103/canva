@@ -1,19 +1,80 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Handle button activation
   let buttons = document.querySelectorAll(".time-btn button");
+  let openingTime = null;
+  let closingTime = null;
+
   buttons.forEach(function (button) {
     button.addEventListener("click", function () {
-      buttons.forEach(function (btn) {
-        btn.classList.remove("active");
-      });
-      this.classList.add("active");
+      // Handle the first selection as the opening time and the second as closing
+      if (!openingTime) {
+        openingTime = this.textContent;
+        console.log(openingTime);
 
-      // Get the selected time
-      const selectedTime = this.textContent;
-      document.getElementById("selected-time-display").textContent =
-        selectedTime;
+        this.classList.add("selected-opening");
+        document.getElementById("selected-time-display").textContent =
+          openingTime;
+      } else if (!closingTime && this.textContent !== openingTime) {
+        closingTime = this.textContent;
+        console.log(closingTime);
+
+        this.classList.add("selected-closing");
+        document.getElementById("selected-time-display").textContent +=
+          " - " + closingTime;
+
+        // Calculate the time difference
+        const duration = calculateTimeDifference(openingTime, closingTime);
+        document.getElementById("time-difference-display").textContent =
+          duration + " Hours Meeting";
+      } else {
+        // Reset if the user tries to select a different opening time or reset closing time
+        resetSelection();
+      }
     });
   });
+
+  // Function to calculate time difference
+  function calculateTimeDifference(start, end) {
+    const startTime = parseTime(start);
+    const endTime = parseTime(end);
+
+    let duration = (endTime - startTime) / (1000 * 60 * 60); // Convert milliseconds to hours
+
+    if (duration < 0) {
+      duration += 24; // Adjust for overnight times
+    }
+
+    return duration;
+  }
+
+  // Helper function to parse the time strings
+  function parseTime(timeString) {
+    const [time, modifier] = timeString.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    // Convert the time to a date object, keeping the current date.
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+
+    return date;
+  }
+
+  // Function to reset selection
+  function resetSelection() {
+    openingTime = null;
+    closingTime = null;
+    buttons.forEach(function (btn) {
+      btn.classList.remove("selected-opening", "selected-closing");
+    });
+    document.getElementById("selected-time-display").textContent = "";
+    document.getElementById("time-difference-display").textContent = "";
+  }
 
   // Handle tab navigation
   const tabs = document.querySelectorAll(".tab-btn");
@@ -71,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     month.innerHTML = `${months[currentMonth]}`;
     year.innerHTML = `${currentYear}`;
-
     let days = "";
 
     // Previous month's days
@@ -122,6 +182,10 @@ document.addEventListener("DOMContentLoaded", function () {
         // Render the selected date
         document.getElementById("selected-date-display").textContent =
           formattedSelectedDate;
+        document.getElementById("picked-date").textContent = day.textContent;
+        document.getElementById("picked-month").textContent =
+          months[currentMonth];
+        document.getElementById("picked-day").textContent = selectedDayOfWeek;
       });
     });
 
@@ -134,6 +198,11 @@ document.addEventListener("DOMContentLoaded", function () {
       } ${today.getDate()}, ${today.getFullYear()}`;
       document.getElementById("selected-date-display").textContent =
         formattedToday;
+
+      document.getElementById("picked-date").textContent = today.getDate();
+      document.getElementById("picked-month").textContent =
+        months[today.getMonth()];
+      document.getElementById("picked-day").textContent = currentDayOfWeek;
     }
   }
 
